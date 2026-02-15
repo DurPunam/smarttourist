@@ -1,0 +1,82 @@
+╔══════════════════════════════════════════════════════════════╗
+║          📍 FIX LOCATION ACCESS - MOBILE BROWSER            ║
+╚══════════════════════════════════════════════════════════════╝
+
+The browser won't ask for permission because you previously 
+blocked it. Here's how to fix it:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 FOR ANDROID CHROME:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Look at the address bar (where the URL is)
+2. Tap the 🔒 LOCK ICON or ⓘ INFO ICON (left side)
+3. Tap "Permissions" or "Site settings"
+4. Find "Location"
+5. Change from "Blocked" to "Allow"
+6. Refresh the page
+7. Click "Enable Tracking" button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 FOR IPHONE SAFARI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+METHOD 1 - Quick Fix:
+1. Tap "aA" icon in address bar (left side)
+2. Tap "Website Settings"
+3. Find "Location"
+4. Change to "Ask" or "Allow"
+5. Refresh the page
+
+METHOD 2 - iPhone Settings:
+1. Close Safari
+2. Open iPhone Settings app
+3. Scroll down to "Safari"
+4. Tap "Location"
+5. Select "Ask" (not "Deny")
+6. Open Safari again
+7. Go back to the website
+8. Click "Enable Tracking"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 ALTERNATIVE - USE INCOGNITO/PRIVATE MODE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This will reset all permissions:
+
+ANDROID CHROME:
+1. Tap 3 dots (⋮) in top-right
+2. Tap "New Incognito tab"
+3. Go to: http://10.90.37.71:3000
+4. Login again
+5. Go to Tourist App
+6. Click "Enable Tracking"
+7. Click "Allow" when asked
+
+IPHONE SAFARI:
+1. Tap tabs icon (bottom-right)
+2. Tap "Private" (bottom-left)
+3. Tap "+" for new private tab
+4. Go to: http://10.90.37.71:3000
+5. Login again
+6. Go to Tourist App
+7. Click "Enable Tracking"
+8. Click "Allow" when asked
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ WHAT YOU SHOULD SEE WHEN IT WORKS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Location: [Your actual street address]
+Coordinates: 28.6139, 77.2090
+Status: Tracking Enabled (green pulsing dot)
+Updating in real-time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 EASIEST METHOD: Use Incognito/Private mode!
+   It will ask for permission again.
+
+╔══════════════════════════════════════════════════════════════╗
+║  Try incognito mode first - it's the quickest solution!     ║
+╚══════════════════════════════════════════════════════════════╝

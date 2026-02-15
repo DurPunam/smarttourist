@@ -1,0 +1,33 @@
+═══════════════════════════════════════════════════════════════
+  WINDOWS FIREWALL SETUP - Copy and Paste These Commands
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Open PowerShell as Administrator
+   → Right-click PowerShell
+   → Select "Run as Administrator"
+
+STEP 2: Copy and paste these commands ONE BY ONE:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+netsh advfirewall firewall add rule name="Smart Tourist Frontend" dir=in action=allow protocol=TCP localport=3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+netsh advfirewall firewall add rule name="Smart Tourist Backend" dir=in action=allow protocol=TCP localport=5000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3: After running both commands, you should see "Ok." twice
+
+═══════════════════════════════════════════════════════════════
+  YOUR MOBILE ACCESS URL
+═══════════════════════════════════════════════════════════════
+
+Open this URL on your mobile browser:
+
+   http://10.90.37.71:3000
+
+Make sure your mobile is on the SAME WiFi as your computer!
+
+═══════════════════════════════════════════════════════════════
