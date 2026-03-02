@@ -52,7 +52,7 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch tourists
-      const touristsResponse = await apiClient.get('/api/tourists?limit=100');
+      const touristsResponse = await apiClient.get('/tourists?limit=100');
       if (touristsResponse.data.success) {
         const apiTourists = touristsResponse.data.data.map((tourist: any) => ({
           id: tourist.touristId || tourist._id,
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch alerts
-      const alertsResponse = await apiClient.get('/api/alerts?status=active&limit=10');
+      const alertsResponse = await apiClient.get('/alerts?status=active&limit=10');
       if (alertsResponse.data.success) {
         const apiAlerts = alertsResponse.data.data.map((alert: any) => ({
           id: alert._id,
@@ -81,8 +81,8 @@ const AdminDashboard = () => {
       }
 
       // Fetch statistics
-      const devicesResponse = await apiClient.get('/api/devices/statistics');
-      const alertStatsResponse = await apiClient.get('/api/alerts/statistics');
+      const devicesResponse = await apiClient.get('/devices/statistics');
+      const alertStatsResponse = await apiClient.get('/alerts/statistics');
       
       if (devicesResponse.data.success && alertStatsResponse.data.success) {
         const deviceStats = devicesResponse.data.data;

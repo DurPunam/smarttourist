@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Tourist = require('../models/Tourist');
 const Device = require('../models/Device');
 const Alert = require('../models/Alert');
-const { requireAdmin, requireGovernment } = require('../middleware/auth');
+const { requireAdmin, requireGovernment } = require('../middleware/auth-improved');
 
 const router = express.Router();
 

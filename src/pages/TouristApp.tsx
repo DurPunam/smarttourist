@@ -78,7 +78,7 @@ const TouristApp = () => {
   // Send location to backend
   const sendLocationToBackend = async (longitude: number, latitude: number, address: string, accuracy?: number) => {
     try {
-      await apiClient.post('/api/tourists/me/location', {
+      await apiClient.post('/tourists/me/location', {
         coordinates: [longitude, latitude],
         address: address,
         accuracy: accuracy || 0
@@ -229,7 +229,7 @@ const TouristApp = () => {
     
     // Send SOS alert to backend
     try {
-      await apiClient.post('/api/tourists/me/emergency', {
+      await apiClient.post('/tourists/me/emergency', {
         type: 'panic',
         description: `Emergency SOS triggered at ${currentLocation}. Coordinates: ${coordinates?.lat}, ${coordinates?.lng}`
       });

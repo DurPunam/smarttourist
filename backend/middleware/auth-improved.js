@@ -303,5 +303,12 @@ module.exports = {
   authorizeOwnerOrAdmin,
   requireStatus,
   userRateLimit,
-  verifyRefreshToken
+  verifyRefreshToken,
+  // Convenience exports for common roles
+  requireAdmin: authorize('admin', 'government'),
+  requireGovernment: authorize('government'),
+  requirePolice: authorize('police', 'admin', 'government'),
+  authorizeTouristAccess: authorizeOwnerOrAdmin('touristId'),
+  authorizeDeviceAccess: authorizeOwnerOrAdmin('deviceId'),
+  authorizeAlertAccess: authorizeOwnerOrAdmin('alertId')
 };

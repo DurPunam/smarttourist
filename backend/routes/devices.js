@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const Device = require('../models/Device');
 const Tourist = require('../models/Tourist');
 const Alert = require('../models/Alert');
-const { authorizeDeviceAccess } = require('../middleware/auth');
+const { authorizeDeviceAccess } = require('../middleware/auth-improved');
 
 const router = express.Router();
 

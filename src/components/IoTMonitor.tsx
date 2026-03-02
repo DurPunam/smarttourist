@@ -58,7 +58,7 @@ const IoTMonitor: React.FC = () => {
 
   const fetchDevices = async () => {
     try {
-      const response = await apiClient.get('/api/devices?limit=100');
+      const response = await apiClient.get('/devices?limit=100');
       if (response.data.success) {
         const apiDevices = response.data.data.map((device: any) => ({
           id: device._id,

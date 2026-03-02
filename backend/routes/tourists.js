@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const Tourist = require('../models/Tourist');
 const Device = require('../models/Device');
 const Alert = require('../models/Alert');
-const { authorizeTouristAccess } = require('../middleware/auth');
+const { authorizeTouristAccess } = require('../middleware/auth-improved');
 
 const router = express.Router();
 
@@ -13,27 +13,21 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 10, status, riskLevel, search } = req.query;
-    const query = { isActive: true };
+    
+    const where = { isActive: true };
 
     // Add filters
-    if (status) query.status = status;
-    if (riskLevel) query.riskLevel = riskLevel;
-    if (search) {
-      query.$or = [
-        { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
-        { 'personalInfo.lastName': { $regex: search, $options: 'i' } },
-        { touristId: { $regex: search, $options: 'i' } },
-        { 'personalInfo.nationality': { $regex: search, $options: 'i' } }
-      ];
-    }
+    if (status) where.status = status;
+    if (riskLevel) where.riskLevel = riskLevel;
 
-    const tourists = await Tourist.find(query)
-      .populate('userId', 'name email role')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    const tourists = await Tourist.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit)
+    });
 
-    const total = await Tourist.countDocuments(query);
+    const total = await Tourist.count({ where });
 
     res.json({
       success: true,
@@ -48,7 +42,8 @@ router.get('/', async (req, res) => {
     console.error('Get tourists error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch tourists'
+      message: 'Failed to fetch tourists',
+      error: error.message
     });
   }
 });

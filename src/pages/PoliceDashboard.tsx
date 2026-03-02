@@ -59,7 +59,7 @@ const PoliceDashboard: React.FC = () => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await apiClient.get('/api/alerts?limit=50');
+      const response = await apiClient.get('/alerts?limit=50');
       if (response.data.success) {
         const apiAlerts = response.data.data.map((alert: any) => ({
           id: alert._id,
@@ -84,7 +84,7 @@ const PoliceDashboard: React.FC = () => {
 
   const fetchTourists = async () => {
     try {
-      const response = await apiClient.get('/api/tourists?limit=50');
+      const response = await apiClient.get('/tourists?limit=50');
       if (response.data.success) {
         const apiTourists = response.data.data.map((tourist: any) => ({
           id: tourist._id,

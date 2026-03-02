@@ -38,7 +38,7 @@ export default function MapTracking() {
     const fetchLocations = async () => {
       try {
         setIsLoading(true);
-        const response = await apiClient.get('/api/tourists?limit=100');
+        const response = await apiClient.get('/tourists?limit=100');
         
         if (response.data.success) {
           const touristLocations: Location[] = response.data.data

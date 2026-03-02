@@ -107,10 +107,11 @@ export function MapView({
       const data = await response.json();
       
       if (data.elements && data.elements.length > 0) {
-        const places: NearbyPlace[] = data.elements
+        // First, calculate straight-line distances and sort
+        const placesWithStraightDistance = data.elements
           .filter((element: any) => element.tags && element.tags.name)
           .map((element: any) => {
-            const distance = calculateDistance(lat, lng, element.lat, element.lon);
+            const distanceKm = calculateDistance(lat, lng, element.lat, element.lon);
             
             let type: NearbyPlace['type'] = 'attraction';
             if (element.tags.amenity === 'police') type = 'police';
@@ -125,22 +126,100 @@ export function MapView({
               type,
               lat: element.lat,
               lng: element.lon,
-              distance: `${distance.toFixed(1)} km`,
+              straightDistance: distanceKm,
               address: element.tags['addr:street'] || element.tags['addr:city'] || 'Address not available'
             };
           })
-          .sort((a, b) => parseFloat(a.distance!) - parseFloat(b.distance!))
-          .slice(0, 20); // Top 20 nearest
+          .sort((a, b) => a.straightDistance - b.straightDistance)
+          .slice(0, 15); // Top 15 nearest by straight-line
 
-        setNearbyPlaces(places);
+        console.log(`Found ${placesWithStraightDistance.length} places, fetching road distances...`);
+
+        // Fetch road distances in batches to avoid overwhelming the API
+        const batchSize = 5;
+        const placesWithRoadDistance: any[] = [];
+        
+        for (let i = 0; i < placesWithStraightDistance.length; i += batchSize) {
+          const batch = placesWithStraightDistance.slice(i, i + batchSize);
+          
+          const batchResults = await Promise.all(
+            batch.map(async (place) => {
+              try {
+                // Use OSRM (Open Source Routing Machine) for road distances
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${lng},${lat};${place.lng},${place.lat}?overview=false`;
+                const routeResponse = await fetch(osrmUrl, { 
+                  signal: AbortSignal.timeout(3000) // 3 second timeout
+                });
+                const routeData = await routeResponse.json();
+                
+                let distanceStr: string;
+                if (routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
+                  // OSRM returns distance in meters
+                  const roadDistanceKm = routeData.routes[0].distance / 1000;
+                  
+                  if (roadDistanceKm < 1) {
+                    distanceStr = `${Math.round(roadDistanceKm * 1000)} m`;
+                  } else {
+                    distanceStr = `${roadDistanceKm.toFixed(1)} km`;
+                  }
+                } else {
+                  // Fallback to straight-line with ~ prefix
+                  const distanceKm = place.straightDistance;
+                  if (distanceKm < 1) {
+                    distanceStr = `~${Math.round(distanceKm * 1000)} m`;
+                  } else {
+                    distanceStr = `~${distanceKm.toFixed(1)} km`;
+                  }
+                }
+                
+                return {
+                  id: place.id,
+                  name: place.name,
+                  type: place.type,
+                  lat: place.lat,
+                  lng: place.lng,
+                  distance: distanceStr,
+                  address: place.address
+                };
+              } catch (error) {
+                console.warn(`Failed to get road distance for ${place.name}, using straight-line`);
+                // Fallback to straight-line distance on error
+                const distanceKm = place.straightDistance;
+                let distanceStr: string;
+                if (distanceKm < 1) {
+                  distanceStr = `~${Math.round(distanceKm * 1000)} m`;
+                } else {
+                  distanceStr = `~${distanceKm.toFixed(1)} km`;
+                }
+                return {
+                  id: place.id,
+                  name: place.name,
+                  type: place.type,
+                  lat: place.lat,
+                  lng: place.lng,
+                  distance: distanceStr,
+                  address: place.address
+                };
+              }
+            })
+          );
+          
+          placesWithRoadDistance.push(...batchResults);
+          
+          // Small delay between batches to avoid rate limiting
+          if (i + batchSize < placesWithStraightDistance.length) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+        
+        console.log(`Successfully calculated distances for ${placesWithRoadDistance.length} places`);
+        setNearbyPlaces(placesWithRoadDistance);
       } else {
-        // Fallback to predefined places if API fails
-        console.log('No nearby places found, using fallback data');
+        console.log('No nearby places found');
         setNearbyPlaces([]);
       }
     } catch (error) {
       console.error('Failed to fetch nearby places:', error);
-      // Use empty array on error
       setNearbyPlaces([]);
     } finally {
       setFetchingNearby(false);
@@ -152,7 +231,7 @@ export function MapView({
     const fetchLocations = async () => {
       try {
         setIsLoading(true);
-        const response = await apiClient.get('/api/tourists?limit=100');
+        const response = await apiClient.get('/tourists?limit=100');
         
         if (response.data.success) {
           const touristLocations: Location[] = response.data.data
@@ -187,16 +266,21 @@ export function MapView({
     }
   }, [userLocation]);
 
+  // Haversine formula for accurate distance calculation
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    
     const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    
+    return distance;
   };
 
   // Initialize map
@@ -308,7 +392,7 @@ export function MapView({
               <h3 style="font-weight: 600; margin-bottom: 4px;">${place.name}</h3>
               <p style="font-size: 12px; color: #666; margin-bottom: 4px;">${place.type.toUpperCase()}</p>
               ${place.address ? `<p style="font-size: 11px; color: #888; margin-bottom: 4px;">${place.address}</p>` : ''}
-              ${place.distance ? `<p style="font-size: 11px; color: #3B82F6; font-weight: 600;">📍 ${place.distance} away</p>` : ''}
+              ${place.distance ? `<p style="font-size: 11px; color: #3B82F6; font-weight: 600;">🚗 ${place.distance} by road</p>` : ''}
             </div>`
           );
 
@@ -598,6 +682,9 @@ export function MapView({
                 <div className="animate-spin rounded-full h-3 w-3 border-2 border-primary-500 border-t-transparent" />
               )}
             </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              🚗 Distances shown are actual road/driving distances
+            </p>
             <div className="space-y-2">
               {nearbyPlaces.slice(0, 10).map((place) => (
                 <div
