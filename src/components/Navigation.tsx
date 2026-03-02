@@ -89,21 +89,6 @@ const Navigation = () => {
               );
             })}
             
-            {/* Desktop Search */}
-            <div className="ml-4 hidden lg:flex items-center">
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.3-4.3"></path>
-                </svg>
-                <Input
-                  aria-label="Search"
-                  placeholder="Search..."
-                  className="pl-9 bg-primary-foreground/10 placeholder-primary-foreground/70 text-primary-foreground border-primary-foreground/20 focus-visible:ring-primary-foreground/40 w-56"
-                />
-              </div>
-            </div>
-
             {/* Connection Status */}
             <div className="flex items-center space-x-2 ml-4">
               {isConnected ? (
@@ -120,39 +105,10 @@ const Navigation = () => {
             </div>
             
             {/* Notifications */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button aria-label="Notifications" variant="ghost" className="relative text-primary-foreground/95 hover:bg-primary-light/25">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-0.5 -right-0.5 inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emergency ring-2 ring-primary/60"></span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72">
-                <div className="px-3 py-2 text-sm font-medium">Notifications</div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-safety" />
-                  <div>
-                    <p className="text-sm">System is running smoothly.</p>
-                    <p className="text-xs text-muted-foreground">Just now</p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-warning" />
-                  <div>
-                    <p className="text-sm">New device connected.</p>
-                    <p className="text-xs text-muted-foreground">2m ago</p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emergency" />
-                  <div>
-                    <p className="text-sm">Alert threshold reached.</p>
-                    <p className="text-xs text-muted-foreground">10m ago</p>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button aria-label="Notifications" variant="ghost" className="relative text-primary-foreground/95 hover:bg-primary-light/25">
+              <Bell className="w-5 h-5" />
+              <span className="absolute -top-0.5 -right-0.5 inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emergency ring-2 ring-primary/60"></span>
+            </Button>
 
             {/* User Menu */}
             <DropdownMenu>
@@ -224,40 +180,13 @@ const Navigation = () => {
                 <div className="py-2">
                   <DropdownMenuItem className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
                     <User className="mr-3 h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="font-medium text-sm text-gray-900">Profile Settings</p>
-                      <p className="text-xs text-gray-500">Manage your account</p>
-                    </div>
+                    <span className="font-medium text-sm text-gray-900">Profile</span>
                   </DropdownMenuItem>
                   
                   <DropdownMenuItem className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
                     <Settings className="mr-3 h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="font-medium text-sm text-gray-900">Preferences</p>
-                      <p className="text-xs text-gray-500">Customize your experience</p>
-                    </div>
+                    <span className="font-medium text-sm text-gray-900">Settings</span>
                   </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                    <Bell className="mr-3 h-4 w-4 text-gray-500" />
-                    <div className="flex items-center justify-between flex-1">
-                      <div>
-                        <p className="font-medium text-sm text-gray-900">Notifications</p>
-                        <p className="text-xs text-gray-500">Manage alerts</p>
-                      </div>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">3</Badge>
-                    </div>
-                  </DropdownMenuItem>
-
-                  {user?.role === 'admin' && (
-                    <DropdownMenuItem className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                      <Shield className="mr-3 h-4 w-4 text-gray-500" />
-                      <div>
-                        <p className="font-medium text-sm text-gray-900">Admin Panel</p>
-                        <p className="text-xs text-gray-500">System management</p>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
                 </div>
                 
                 <DropdownMenuSeparator className="bg-gray-200" />
@@ -268,10 +197,7 @@ const Navigation = () => {
                     className="px-4 py-3 hover:bg-red-50 cursor-pointer text-red-600"
                   >
                     <LogOut className="mr-3 h-4 w-4" />
-                    <div>
-                      <p className="font-medium text-sm">Sign Out</p>
-                      <p className="text-xs text-red-500/70">End your session</p>
-                    </div>
+                    <span className="font-medium text-sm">Sign Out</span>
                   </DropdownMenuItem>
                 </div>
               </DropdownMenuContent>

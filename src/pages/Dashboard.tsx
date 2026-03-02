@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import apiClient from '@/utils/apiClient';
 import { 
   Shield, 
   Smartphone, 
@@ -54,24 +55,89 @@ const Dashboard = () => {
     activeConnections: 8934,
     dataProcessed: '2.4TB',
     safetyScore: 92,
-    activeTourists: 1247,
-    activeDevices: 2156,
-    criticalAlerts: 3
+    activeTourists: 0,
+    activeDevices: 0,
+    criticalAlerts: 0
   });
 
   const [touristStats, setTouristStats] = useState({
-    total: 1247,
-    active: 1156,
-    atRisk: 23,
-    safe: 1133
+    total: 0,
+    active: 0,
+    atRisk: 0,
+    safe: 0
   });
 
   const [deviceStats, setDeviceStats] = useState({
-    total: 2156,
-    online: 2103,
-    offline: 53,
-    batteryLow: 12
+    total: 0,
+    online: 0,
+    offline: 0,
+    batteryLow: 0
   });
+
+  // Fetch real-time data from API
+  useEffect(() => {
+    fetchDashboardData();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch tourists
+      const touristsResponse = await apiClient.get('/tourists?limit=100');
+      if (touristsResponse.data.success) {
+        const tourists = touristsResponse.data.data;
+        const activeTourists = tourists.filter((t: any) => t.status === 'active').length;
+        const atRiskTourists = tourists.filter((t: any) => t.riskLevel === 'high' || t.riskLevel === 'critical').length;
+        
+        setTouristStats({
+          total: touristsResponse.data.pagination?.total || tourists.length,
+          active: activeTourists,
+          atRisk: atRiskTourists,
+          safe: activeTourists - atRiskTourists
+        });
+
+        setSystemStatus(prev => ({
+          ...prev,
+          activeTourists: activeTourists
+        }));
+      }
+
+      // Fetch alerts
+      const alertsResponse = await apiClient.get('/alerts?status=active');
+      if (alertsResponse.data.success) {
+        const criticalAlerts = alertsResponse.data.data.filter((a: any) => a.severity === 'critical').length;
+        setSystemStatus(prev => ({
+          ...prev,
+          criticalAlerts
+        }));
+      }
+
+      // Fetch devices
+      const devicesResponse = await apiClient.get('/devices/statistics');
+      if (devicesResponse.data.success) {
+        const deviceData = devicesResponse.data.data;
+        const onlineDevices = deviceData.totals?.online || 0;
+        const offlineDevices = deviceData.totals?.offline || 0;
+        const totalDevices = deviceData.totals?.total || 0;
+
+        setDeviceStats({
+          total: totalDevices,
+          online: onlineDevices,
+          offline: offlineDevices,
+          batteryLow: 0
+        });
+
+        setSystemStatus(prev => ({
+          ...prev,
+          activeDevices: onlineDevices
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    }
+  };
 
   // Update time every second
   useEffect(() => {
@@ -81,7 +147,7 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Simulate real-time updates
+  // Update response time simulation
   useEffect(() => {
     const interval = setInterval(() => {
       setSystemStatus(prev => ({
@@ -95,15 +161,7 @@ const Dashboard = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSystemStatus(prev => ({
-      ...prev,
-      safetyScore: Math.floor(Math.random() * 20) + 80,
-      activeTourists: Math.floor(Math.random() * 100) + 1200,
-      activeDevices: Math.floor(Math.random() * 300) + 2000,
-      criticalAlerts: Math.floor(Math.random() * 5)
-    }));
+    await fetchDashboardData();
     setIsRefreshing(false);
   };
 
@@ -153,49 +211,6 @@ const Dashboard = () => {
     { label: 'Safety Score', value: `${systemStatus.safetyScore}%`, icon: Shield, color: 'text-orange-500' }
   ];
 
-  const modules = [
-    {
-      id: 'tourist-management',
-      title: 'Tourist Management',
-      description: 'Monitor and manage tourist registrations, locations, and safety status',
-      stats: '1,247 Active Tourists',
-      features: ['Real-time tracking', 'Emergency alerts', 'Profile management', 'Safety reports'],
-      path: '/tourists',
-      icon: Users,
-      variant: 'default' as const
-    },
-    {
-      id: 'iot-monitoring',
-      title: 'IoT Device Monitoring',
-      description: 'Monitor IoT devices, sensors, and equipment health status',
-      stats: '2,156 Connected Devices',
-      features: ['Device health', 'Battery monitoring', 'Signal strength', 'Maintenance alerts'],
-      path: '/iot',
-      icon: Smartphone,
-      variant: 'secondary' as const
-    },
-    {
-      id: 'emergency-response',
-      title: 'Emergency Response',
-      description: 'Handle emergency situations and coordinate rescue operations',
-      stats: '3 Active Alerts',
-      features: ['Alert management', 'Response coordination', 'Location tracking', 'Communication'],
-      path: '/emergency',
-      icon: AlertTriangle,
-      variant: 'destructive' as const
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics & Reports',
-      description: 'Generate insights and reports on tourist safety metrics',
-      stats: '99.9% Uptime',
-      features: ['Performance metrics', 'Safety trends', 'Custom reports', 'Data export'],
-      path: '/analytics',
-      icon: BarChart3,
-      variant: 'outline' as const
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-6 space-y-8">
@@ -203,28 +218,26 @@ const Dashboard = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back, {user?.name || 'User'}! 👋
+              Welcome back, {user?.name || 'User'}!
             </h1>
             <p className="text-muted-foreground">
-              Here's what's happening with your tourist safety platform today.
+              Tourist Safety Platform Dashboard
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Badge variant="secondary" className="gap-2">
-              <Clock className="w-3 h-3" />
-              {currentTime.toLocaleTimeString()}
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="gap-2">
+            <Clock className="w-3 h-3" />
+            {currentTime.toLocaleTimeString()}
+          </Badge>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
         {/* Navigation Tabs */}
@@ -233,36 +246,28 @@ const Dashboard = () => {
             variant={activeView === 'overview' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setActiveView('overview')}
-            className="gap-2"
           >
-            <BarChart3 className="w-4 h-4" />
             Overview
           </Button>
           <Button
             variant={activeView === 'iot' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setActiveView('iot')}
-            className="gap-2"
           >
-            <Smartphone className="w-4 h-4" />
             IoT Monitor
           </Button>
           <Button
             variant={activeView === 'tourists' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setActiveView('tourists')}
-            className="gap-2"
           >
-            <Users className="w-4 h-4" />
             Tourists
           </Button>
           <Button
             variant={activeView === 'notifications' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setActiveView('notifications')}
-            className="gap-2"
           >
-            <Bell className="w-4 h-4" />
             Notifications
           </Button>
         </div>
@@ -289,19 +294,8 @@ const Dashboard = () => {
                 Tourist Safety Platform
               </h1>
               <p className="text-xl md:text-2xl text-primary-foreground/90 mb-6 max-w-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                Ensuring tourist safety through digital innovation, real-time monitoring, 
-                and seamless government integration.
+                Ensuring tourist safety through digital innovation and real-time monitoring.
               </p>
-              <div className="flex flex-wrap gap-3 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                <Button variant="secondary" size="lg" className="shadow-card-custom font-medium">
-                  <Shield className="w-5 h-5" />
-                  Get Started
-                </Button>
-                <Button variant="outline" size="lg" className="text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10">
-                  <Activity className="w-5 h-5" />
-                  View Analytics
-                </Button>
-              </div>
             </div>
             
             {/* Real-time system status */}
@@ -469,63 +463,6 @@ const Dashboard = () => {
             {/* Charts Section */}
             <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <StatsChart />
-            </div>
-
-            {/* Main Modules */}
-            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <h2 className="text-3xl font-bold font-display mb-6 flex items-center space-x-3">
-                <span>Platform Modules</span>
-                <div className="h-1 flex-1 bg-gradient-primary rounded-full opacity-20"></div>
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {modules.map((module, index) => {
-                  const Icon = module.icon;
-                  return (
-                    <Card 
-                      key={module.id} 
-                      className="shadow-card-custom border-card-border hover:shadow-glow transition-all duration-300 group animate-scale-in"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <CardHeader>
-                        <div className="flex items-center space-x-3">
-                          <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-                            <Icon className="w-6 h-6 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="text-xl font-display">{module.title}</CardTitle>
-                            <CardDescription className="text-base">
-                              {module.description}
-                            </CardDescription>
-                            <div className="mt-2 text-sm font-medium text-primary">
-                              {module.stats}
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-2">
-                          {module.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex items-center space-x-2">
-                              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                              <span className="text-sm text-muted-foreground">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <Link to={module.path} className="block">
-                          <Button 
-                            variant={module.variant} 
-                            className="w-full group-hover:scale-[1.02] transition-transform" 
-                            size="lg"
-                          >
-                            Access Module
-                            <Icon className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Security Notice */}

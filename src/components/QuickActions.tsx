@@ -17,7 +17,7 @@ const QuickActions = () => {
     {
       id: 'generate-report',
       title: 'Generate Report',
-      description: 'Create comprehensive safety report',
+      description: 'Create safety report',
       icon: FileText,
       variant: 'government' as const,
       action: () => console.log('Generate report')
@@ -25,7 +25,7 @@ const QuickActions = () => {
     {
       id: 'export-data',
       title: 'Export Data',
-      description: 'Download tourist data as CSV/Excel',
+      description: 'Download tourist data',
       icon: Download,
       variant: 'outline' as const,
       action: () => console.log('Export data')
@@ -33,18 +33,10 @@ const QuickActions = () => {
     {
       id: 'send-alert',
       title: 'Send Alert',
-      description: 'Broadcast safety alert to tourists',
+      description: 'Broadcast safety alert',
       icon: Send,
       variant: 'warning' as const,
       action: () => console.log('Send alert')
-    },
-    {
-      id: 'notifications',
-      title: 'Manage Notifications',
-      description: 'Configure notification settings',
-      icon: Bell,
-      variant: 'outline' as const,
-      action: () => console.log('Manage notifications')
     }
   ];
 
@@ -74,23 +66,6 @@ const QuickActions = () => {
             </Button>
           );
         })}
-        
-        <div className="pt-3 border-t">
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" className="flex-1">
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1">
-              <Search className="w-4 h-4" />
-              Search
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1">
-              <Filter className="w-4 h-4" />
-              Filter
-            </Button>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

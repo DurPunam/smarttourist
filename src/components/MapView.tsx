@@ -120,12 +120,21 @@ export function MapView({
             else if (element.tags.amenity === 'restaurant') type = 'restaurant';
             else if (element.tags.tourism === 'attraction' || element.tags.tourism === 'museum') type = 'attraction';
 
+            // Format straight-line distance
+            let distanceStr: string;
+            if (distanceKm < 1) {
+              distanceStr = `~${Math.round(distanceKm * 1000)} m`;
+            } else {
+              distanceStr = `~${distanceKm.toFixed(1)} km`;
+            }
+
             return {
               id: element.id.toString(),
               name: element.tags.name,
               type,
               lat: element.lat,
               lng: element.lon,
+              distance: distanceStr, // Show straight-line distance immediately
               straightDistance: distanceKm,
               address: element.tags['addr:street'] || element.tags['addr:city'] || 'Address not available'
             };
@@ -133,9 +142,13 @@ export function MapView({
           .sort((a, b) => a.straightDistance - b.straightDistance)
           .slice(0, 15); // Top 15 nearest by straight-line
 
-        console.log(`Found ${placesWithStraightDistance.length} places, fetching road distances...`);
+        console.log(`Found ${placesWithStraightDistance.length} places with straight-line distances`);
+        
+        // Show straight-line distances immediately
+        setNearbyPlaces(placesWithStraightDistance);
 
-        // Fetch road distances in batches to avoid overwhelming the API
+        // Then fetch road distances in background
+        console.log('Fetching road distances in background...');
         const batchSize = 5;
         const placesWithRoadDistance: any[] = [];
         
@@ -163,13 +176,8 @@ export function MapView({
                     distanceStr = `${roadDistanceKm.toFixed(1)} km`;
                   }
                 } else {
-                  // Fallback to straight-line with ~ prefix
-                  const distanceKm = place.straightDistance;
-                  if (distanceKm < 1) {
-                    distanceStr = `~${Math.round(distanceKm * 1000)} m`;
-                  } else {
-                    distanceStr = `~${distanceKm.toFixed(1)} km`;
-                  }
+                  // Keep straight-line with ~ prefix
+                  distanceStr = place.distance;
                 }
                 
                 return {
@@ -182,22 +190,15 @@ export function MapView({
                   address: place.address
                 };
               } catch (error) {
-                console.warn(`Failed to get road distance for ${place.name}, using straight-line`);
-                // Fallback to straight-line distance on error
-                const distanceKm = place.straightDistance;
-                let distanceStr: string;
-                if (distanceKm < 1) {
-                  distanceStr = `~${Math.round(distanceKm * 1000)} m`;
-                } else {
-                  distanceStr = `~${distanceKm.toFixed(1)} km`;
-                }
+                console.warn(`Failed to get road distance for ${place.name}, keeping straight-line`);
+                // Keep straight-line distance on error
                 return {
                   id: place.id,
                   name: place.name,
                   type: place.type,
                   lat: place.lat,
                   lng: place.lng,
-                  distance: distanceStr,
+                  distance: place.distance,
                   address: place.address
                 };
               }
@@ -206,14 +207,16 @@ export function MapView({
           
           placesWithRoadDistance.push(...batchResults);
           
+          // Update UI with road distances as they come in
+          setNearbyPlaces([...placesWithRoadDistance]);
+          
           // Small delay between batches to avoid rate limiting
           if (i + batchSize < placesWithStraightDistance.length) {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
         }
         
-        console.log(`Successfully calculated distances for ${placesWithRoadDistance.length} places`);
-        setNearbyPlaces(placesWithRoadDistance);
+        console.log(`Successfully calculated road distances for ${placesWithRoadDistance.length} places`);
       } else {
         console.log('No nearby places found');
         setNearbyPlaces([]);
