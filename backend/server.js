@@ -126,6 +126,15 @@ app.use('/api/dashboard', authenticateToken, dashboardRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/weather', weatherRoutes); // Public weather API
 
+// Health check endpoint for deployment platforms
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API is healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // WebSocket connection handling
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
