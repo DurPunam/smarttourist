@@ -16,6 +16,8 @@ services:
         generateValue: true
       - key: GEMINI_API_KEY
         sync: false
+      - key: CORS_ORIGIN
+        value: https://smarttourist-frontend.onrender.com
     healthCheckPath: /api/health
 
   # Frontend
@@ -30,6 +32,6 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://smarttourist-backend.onrender.com
+        value: https://smarttourist-backend.onrender.com/api
       - key: NODE_VERSION
         value: 20
