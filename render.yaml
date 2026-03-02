@@ -22,7 +22,7 @@ services:
   - type: web
     name: smarttourist-frontend
     env: static
-    buildCommand: npm install && npm run build:client
+    buildCommand: npm install --legacy-peer-deps && npm run build:client
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
