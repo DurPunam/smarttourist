@@ -22,7 +22,7 @@ services:
   - type: web
     name: smarttourist-frontend
     env: static
-    buildCommand: npm install && npm run build:client
+    buildCommand: npm install && npm run build:client && cp public/_redirects dist/_redirects
     staticPublishPath: ./dist
     routes:
       - type: rewrite
