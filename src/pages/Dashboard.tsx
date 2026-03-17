@@ -51,10 +51,10 @@ const Dashboard = () => {
   const [activeView, setActiveView] = useState<'overview' | 'iot' | 'tourists' | 'notifications'>('overview');
   const [systemStatus, setSystemStatus] = useState({
     uptime: '99.9%',
-    responseTime: '142ms',
-    activeConnections: 8934,
-    dataProcessed: '2.4TB',
-    safetyScore: 92,
+    responseTime: '0ms',
+    activeConnections: 0,
+    dataProcessed: '0MB',
+    safetyScore: 100,
     activeTourists: 0,
     activeDevices: 0,
     criticalAlerts: 0
@@ -77,9 +77,16 @@ const Dashboard = () => {
   // Fetch real-time data from API
   useEffect(() => {
     fetchDashboardData();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000);
-    return () => clearInterval(interval);
+    fetchSystemMetrics();
+    // Refresh dashboard data every 30 seconds
+    const dashboardInterval = setInterval(fetchDashboardData, 30000);
+    // Refresh metrics every 5 seconds for real-time updates
+    const metricsInterval = setInterval(fetchSystemMetrics, 5000);
+    
+    return () => {
+      clearInterval(dashboardInterval);
+      clearInterval(metricsInterval);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
@@ -139,6 +146,26 @@ const Dashboard = () => {
     }
   };
 
+  const fetchSystemMetrics = async () => {
+    try {
+      const response = await apiClient.get('/metrics/system');
+      if (response.data.success) {
+        const metrics = response.data.data;
+        console.log('Metrics received:', metrics.performance);
+        setSystemStatus(prev => ({
+          ...prev,
+          responseTime: metrics.performance.responseTime,
+          activeConnections: metrics.performance.activeConnections,
+          dataProcessed: metrics.performance.dataProcessed,
+          safetyScore: metrics.performance.safetyScore,
+          uptime: metrics.system.uptime.percent
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch system metrics:', error);
+    }
+  };
+
   // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
@@ -161,7 +188,7 @@ const Dashboard = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchDashboardData();
+    await Promise.all([fetchDashboardData(), fetchSystemMetrics()]);
     setIsRefreshing(false);
   };
 
@@ -205,10 +232,34 @@ const Dashboard = () => {
   ];
 
   const systemMetrics = [
-    { label: 'Response Time', value: systemStatus.responseTime, icon: Zap, color: 'text-green-500' },
-    { label: 'Active Connections', value: systemStatus.activeConnections.toLocaleString(), icon: Wifi, color: 'text-blue-500' },
-    { label: 'Data Processed', value: systemStatus.dataProcessed, icon: Globe, color: 'text-purple-500' },
-    { label: 'Safety Score', value: `${systemStatus.safetyScore}%`, icon: Shield, color: 'text-orange-500' }
+    { 
+      label: 'Response Time', 
+      value: systemStatus.responseTime, 
+      icon: Zap, 
+      color: 'text-green-500',
+      description: 'How fast the server responds to requests'
+    },
+    { 
+      label: 'Active Users', 
+      value: systemStatus.activeConnections.toLocaleString(), 
+      icon: Wifi, 
+      color: 'text-blue-500',
+      description: 'Number of users online right now'
+    },
+    { 
+      label: 'Data Processed', 
+      value: systemStatus.dataProcessed, 
+      icon: Globe, 
+      color: 'text-purple-500',
+      description: 'Total data handled by the system'
+    },
+    { 
+      label: 'Safety Score', 
+      value: `${systemStatus.safetyScore}%`, 
+      icon: Shield, 
+      color: 'text-orange-500',
+      description: 'Overall system health (100% = perfect)'
+    }
   ];
 
   return (
@@ -431,12 +482,15 @@ const Dashboard = () => {
                     return (
                       <div 
                         key={index} 
-                        className="text-center p-4 bg-secondary/30 rounded-xl animate-bounce-in"
+                        className="relative text-center p-6 bg-gradient-to-br from-secondary/40 to-secondary/20 rounded-xl border border-border/50 hover:border-primary/50 transition-all duration-300 animate-bounce-in group"
                         style={{ animationDelay: `${index * 0.1}s` }}
+                        title={metric.description}
                       >
-                        <Icon className={`w-6 h-6 mx-auto mb-2 ${metric.color}`} />
-                        <p className="text-lg font-bold font-display">{metric.value}</p>
-                        <p className="text-sm text-muted-foreground">{metric.label}</p>
+                        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                        <Icon className={`w-8 h-8 mx-auto mb-3 ${metric.color} group-hover:scale-110 transition-transform duration-300`} />
+                        <p className="text-2xl font-bold font-display mb-1 transition-all duration-500">{metric.value}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{metric.label}</p>
+                        <p className="text-xs text-muted-foreground/70 italic">{metric.description}</p>
                       </div>
                     );
                   })}

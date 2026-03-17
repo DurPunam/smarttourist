@@ -19,6 +19,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const chatbotRoutes = require('./routes/chatbot');
 const weatherRoutes = require('./routes/weather');
 const initRoutes = require('./routes/init');
+const metricsRoutes = require('./routes/metrics');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -130,6 +131,7 @@ app.use('/api/dashboard', authenticateToken, dashboardRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/weather', weatherRoutes); // Public weather API
 app.use('/api/init', initRoutes); // Database initialization (public)
+app.use('/api/metrics', authenticateToken, metricsRoutes); // System metrics
 
 // Health check endpoint for deployment platforms
 app.get('/api/health', (req, res) => {

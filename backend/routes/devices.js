@@ -1,5 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const { Op } = require('sequelize');
 const Device = require('../models/Device');
 const Tourist = require('../models/Tourist');
 const Alert = require('../models/Alert');
@@ -58,36 +59,60 @@ router.get('/', async (req, res) => {
 // @access  Private
 router.get('/statistics', async (req, res) => {
   try {
-    const totalDevices = await Device.countDocuments({ isActive: true });
-    const activeDevices = await Device.countDocuments({ status: 'active', isActive: true });
-    const warningDevices = await Device.countDocuments({ status: 'warning', isActive: true });
-    const offlineDevices = await Device.countDocuments({ status: 'offline', isActive: true });
+    // Use Sequelize methods for SQLite
+    const totalDevices = await Device.count({ where: { isActive: true } });
+    const activeDevices = await Device.count({ where: { status: 'active', isActive: true } });
+    const warningDevices = await Device.count({ where: { status: 'warning', isActive: true } });
+    const offlineDevices = await Device.count({ where: { status: 'offline', isActive: true } });
 
-    const deviceTypes = await Device.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: '$deviceType', count: { $sum: 1 } } }
-    ]);
+    // Get device types count
+    const devicesByType = await Device.findAll({
+      where: { isActive: true },
+      attributes: [
+        'deviceType',
+        [Device.sequelize.fn('COUNT', Device.sequelize.col('id')), 'count']
+      ],
+      group: ['deviceType'],
+      raw: true
+    });
 
-    const lowBatteryDevices = await Device.findLowBattery(20);
-    const offlineDevicesList = await Device.findOffline(30);
+    // Get low battery devices (battery < 20%)
+    const lowBatteryDevices = await Device.count({
+      where: {
+        isActive: true,
+        batteryLevel: { [Op.lt]: 20 }
+      }
+    });
+
+    // Get offline devices (not updated in last 30 minutes)
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const offlineDevicesList = await Device.count({
+      where: {
+        isActive: true,
+        lastUpdate: { [Op.lt]: thirtyMinutesAgo }
+      }
+    });
 
     res.json({
       success: true,
       data: {
-        total: totalDevices,
-        active: activeDevices,
-        warning: warningDevices,
-        offline: offlineDevices,
-        byType: deviceTypes,
-        lowBattery: lowBatteryDevices.length,
-        offlineList: offlineDevicesList.length
+        totals: {
+          total: totalDevices,
+          online: activeDevices,
+          offline: offlineDevices,
+          warning: warningDevices
+        },
+        byType: devicesByType,
+        lowBattery: lowBatteryDevices,
+        offlineList: offlineDevicesList
       }
     });
   } catch (error) {
     console.error('Get device statistics error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch device statistics'
+      message: 'Failed to fetch device statistics',
+      error: error.message
     });
   }
 });
